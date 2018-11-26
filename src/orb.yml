@@ -115,3 +115,41 @@ commands:
       - run:
           name: "[github-release] Get tools to manage releases"
           command: go get github.com/aktau/github-release github.com/tcnksm/ghr
+
+
+examples:
+
+  delete:
+    description: Delete an existing release
+    usage:
+      version: 2.1
+      orbs:
+        github-release: h-matsuo/github-release@0.1.1
+      jobs:
+        build:
+          description: Delete the release tagged `vX.Y.Z`
+          executor: github-release/default
+          steps:
+            - github-release/delete:
+                tag: vX.Y.Z
+
+  create:
+    description: Publish a new release with artifacts
+    usage:
+      version: 2.1
+      orbs:
+        github-release: h-matsuo/github-release@0.1.1
+      jobs:
+        build:
+          description: Create dummy file and publish a new release tagged `vX.Y.Z`
+          executor: github-release/default
+          steps:
+            - run:
+                command: |
+                  mkdir artifacts
+                  echo dummy > ./artifacts/file
+            - github-release/create:
+                tag: vX.Y.Z
+                title: Version vX.Y.Z
+                description: This release is version vX.Y.Z .
+                file-path: ./artifacts/file
