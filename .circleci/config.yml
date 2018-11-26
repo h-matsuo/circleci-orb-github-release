@@ -22,7 +22,7 @@ workflows:
   # when pushed to `master` branch
   publish-as-prod-version:
     jobs:
-      - hold:
+      - wait-for-approval:
           type: approval
           filters:
             branches:
@@ -34,4 +34,4 @@ workflows:
           publish-token-variable: $CIRCLECI_API_TOKEN
           validate: true
           requires:
-            - hold
+            - wait-for-approval
