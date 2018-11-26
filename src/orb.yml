@@ -1,0 +1,135 @@
+version: 2.1
+
+description: |
+  Orbs for GitHub Releases
+
+executors:
+  default:
+    parameters:
+      tag:
+        description: Pick a specific circleci/golang image variant
+        type: string
+        default: "latest"
+    docker:
+      - image: circleci/golang:<< parameters.tag >>
+
+commands:
+
+  release:
+    description: Publish Release on GitHub
+    parameters:
+      token:
+        description: GitHub personal access token
+        type: string
+        default: $GITHUB_TOKEN
+      user:
+        description: GitHub repository user or organization
+        type: string
+        default: $CIRCLE_PROJECT_USERNAME
+      repository:
+        description: GitHub repository
+        type: string
+        default: $CIRCLE_PROJECT_REPONAME
+      target:
+        description: Git commitish (commit SHA or branch name) to create the release of
+        type: string
+        default: $CIRCLE_SHA1
+      tag:
+        description: Git tag to create the release from
+        type: string
+      title:
+        description: Name of the release (Defaults to git tag)
+        type: string
+        default: ""
+      description:
+        description: Description of the release (Defaults to git tag)
+        type: string
+        default: ""
+      path:
+        description: File path to upload (if directory, all files in the directory will be uploaded)
+        type: string
+        default: ""
+      draft:
+        description: Set true if the release is a draft
+        type: boolean
+        default: false
+      pre-release:
+        description: Set true if the release is a pre-release
+        type: boolean
+        default: false
+      overwrite:
+        description: Set true to allow overwriting the existing release for specified git tag
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: "[github-release/release] Get github-release"
+          command: go get github.com/aktau/github-release
+      - when:
+          condition: << parameters.overwrite >>
+          steps:
+            - run:
+                name: "[github-release/release] Check whether there already exists the release"
+                command: |
+                  set +e
+                  github-release info \
+                    --security-token << parameters.token >> \
+                    --user << parameters.user >> \
+                    --repo << parameters.repository >> \
+                    --tag << parameters.tag >> \
+                      > /dev/null 2>&1
+                  DOES_RELEASE_EXIST=$?
+                  set -e
+      - unless:
+          condition: << parameters.overwrite >>
+          steps:
+            - internal_create_new_release:
+                token: << parameters.token >>
+                user: << parameters.user >>
+                repository: << parameters.repository >>
+                tag: << parameters.tag >>
+                title: << parameters.title >>
+                description: << parameters.description >>
+                target: << parameters.target >>
+                draft: << parameters.draft >>
+                pre-release: << parameters.pre-release >>
+
+  internal_create_new_release:
+    description: "(For INTERNAL use) Create new release"
+    parameters:
+      token:
+        type: string
+      user:
+        type: string
+      repository:
+        type: string
+      tag:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      target:
+        type: string
+      draft:
+        type: boolean
+      pre-release:
+        type: boolean
+    steps:
+      - run:
+          name: "[github-release] Get tools to manage releases"
+          command: go get github.com/aktau/github-release github.com/tcnksm/ghr
+      - run:
+          name: "[github-release] Create new release"
+          command: |
+            github-release release \
+              --security-token << parameters.token >> \
+              --user << parameters.user >> \
+              --repo << parameters.repository >> \
+              --tag << parameters.tag >> \
+              --name "<< parameters.title >>" \
+              --description "<< parameters.description >>" \
+              --target << parameters.target >> \
+              <<# parameters.draft >> --draft <</ parameters.draft >> \
+              <<# parameters.pre-release >> --pre-release <</ parameters.pre-release >>
+
