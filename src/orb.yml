@@ -1,7 +1,7 @@
 version: 2.1
 
 description: |
-  An orb to manage GitHub's Releases
+  Create / delete GitHub's Releases. https://github.com/h-matsuo/circleci-orb-github-release
 
 executors:
   default:
