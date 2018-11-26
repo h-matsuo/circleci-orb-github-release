@@ -1,0 +1,37 @@
+version: 2.1
+
+orbs:
+  orb-tools: circleci/orb-tools@2.0.2
+
+workflows:
+
+  # Publish this orb as dev version
+  # when pushed to the branches except for `master`
+  publish-as-dev-version:
+    jobs:
+      - orb-tools/publish:
+          orb-path: src/orb.yml
+          orb-ref: h-matsuo/github-release@dev:${CIRCLE_BRANCH}
+          publish-token-variable: $CIRCLECI_API_TOKEN
+          validate: true
+          filters:
+            branches:
+              ignore: master
+
+  # Publish this orb as prod version
+  # when pushed to `master` branch
+  publish-as-prod-version:
+    jobs:
+      - hold:
+          type: approval
+          filters:
+            branches:
+              only: master
+      - orb-tools/increment:
+          orb-path: src/orb.yml
+          orb-ref: h-matsuo/github-release
+          segment: patch
+          publish-token-variable: $CIRCLECI_API_TOKEN
+          validate: true
+          requires:
+            - hold
