@@ -61,8 +61,8 @@ commands:
       description:
         description: Description of the release
         type: string
-      path:
-        description: File path to upload (if directory, all files in the directory will be uploaded)
+      file-path:
+        description: File path to be uploaded (if directory, all files in the directory will be uploaded)
         type: string
         default: ""
       draft:
@@ -76,7 +76,7 @@ commands:
     steps:
       - internal__go-get
       - when:
-          condition: << parameters.path >>
+          condition: << parameters.file-path >>
           steps:
             - run:
                 name: "[github-release/create] Publish a new release with artifacts"
@@ -90,9 +90,9 @@ commands:
                     --body "<< parameters.description >>" \
                     <<# parameters.draft >> --draft <</ parameters.draft >> \
                     <<# parameters.pre-release >> --prerelease <</ parameters.pre-release >> \
-                      << parameters.tag >> << parameters.path >>
+                      << parameters.tag >> << parameters.file-path >>
       - unless:
-          condition: << parameters.path >>
+          condition: << parameters.file-path >>
           steps:
             - run:
                 name: "[github-release/create] Publish a new release without artifacts"
