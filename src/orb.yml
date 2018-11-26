@@ -14,8 +14,8 @@ executors:
       - image: circleci/golang:<< parameters.tag >>
 
 common-parameters: &common-parameters
-  token:
-    description: GitHub personal access token
+  github-token-variable:
+    description: Environment variable containing your GitHub personal access token
     type: string
     default: $GITHUB_TOKEN
   user:
@@ -42,7 +42,7 @@ commands:
           name: "[github-release/delete] Delete the specified release"
           command: |
             github-release delete \
-              --security-token << parameters.token >> \
+              --security-token << parameters.github-token-variable >> \
               --user << parameters.user >> \
               --repo << parameters.repository >> \
               --tag << parameters.tag >>
@@ -82,7 +82,7 @@ commands:
                 name: "[github-release/create] Publish a new release with artifacts"
                 command: |
                   ghr \
-                    --token << parameters.token >> \
+                    --token << parameters.github-token-variable >> \
                     --username << parameters.user >> \
                     --repository << parameters.repository >> \
                     --commitish << parameters.target >> \
@@ -98,7 +98,7 @@ commands:
                 name: "[github-release/create] Publish a new release without artifacts"
                 command: |
                   github-release release \
-                    --security-token << parameters.token >> \
+                    --security-token << parameters.github-token-variable >> \
                     --user << parameters.user >> \
                     --repo << parameters.repository >> \
                     --tag << parameters.tag >> \
