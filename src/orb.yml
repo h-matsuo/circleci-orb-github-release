@@ -53,7 +53,7 @@ commands:
     parameters:
       <<: *common-parameters
       tag:
-        description: Git tag using as the version number of the release.
+        description: Git tag for the release. This will be used as the version number.
         type: string
       target:
         description: Git commitish (commit SHA or branch name) containing the project you want to release.
