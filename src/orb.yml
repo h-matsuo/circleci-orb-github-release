@@ -37,7 +37,7 @@ commands:
     parameters:
       <<: *common-parameters
     steps:
-      - internal__go-get
+      - internal__install-deps
       - run:
           name: "[github-release/delete] Delete the specified release"
           command: |
@@ -74,7 +74,7 @@ commands:
         type: boolean
         default: false
     steps:
-      - internal__go-get
+      - internal__install-deps
       - when:
           condition: << parameters.file-path >>
           steps:
@@ -109,8 +109,9 @@ commands:
                     <<# parameters.pre-release >> --pre-release <</ parameters.pre-release >>
 
 
-  internal__go-get:
-    description: "(For INTERNAL use) Get tools to manage GitHub's releases"
+  # Get tools to manage GitHub's releases
+  internal__install-deps:
+    description: "(For INTERNAL use only)"
     steps:
       - run:
           name: "[github-release] Get tools to manage releases"
