@@ -1,7 +1,7 @@
 version: 2.1
 
 description: |
-  An orb to manage GitHub's Releases
+  Create / delete GitHub's Releases. https://github.com/h-matsuo/circleci-orb-github-release
 
 executors:
   default:
@@ -14,8 +14,8 @@ executors:
       - image: circleci/golang:<< parameters.tag >>
 
 common-parameters: &common-parameters
-  token:
-    description: GitHub personal access token
+  github-token-variable:
+    description: Environment variable containing your GitHub personal access token
     type: string
     default: $GITHUB_TOKEN
   user:
@@ -42,7 +42,7 @@ commands:
           name: "[github-release/delete] Delete the specified release"
           command: |
             github-release delete \
-              --security-token << parameters.token >> \
+              --security-token << parameters.github-token-variable >> \
               --user << parameters.user >> \
               --repo << parameters.repository >> \
               --tag << parameters.tag >>
@@ -56,15 +56,13 @@ commands:
         type: string
         default: $CIRCLE_SHA1
       title:
-        description: Name of the release (Defaults to git tag)
+        description: Name of the release
         type: string
-        default: ""
       description:
-        description: Description of the release (Defaults to git tag)
+        description: Description of the release
         type: string
-        default: ""
-      path:
-        description: File path to upload (if directory, all files in the directory will be uploaded)
+      file-path:
+        description: File path to be uploaded (if directory, all files in the directory will be uploaded)
         type: string
         default: ""
       draft:
@@ -78,13 +76,13 @@ commands:
     steps:
       - internal__go-get
       - when:
-          condition: << parameters.path >>
+          condition: << parameters.file-path >>
           steps:
             - run:
                 name: "[github-release/create] Publish a new release with artifacts"
                 command: |
                   ghr \
-                    --token << parameters.token >> \
+                    --token << parameters.github-token-variable >> \
                     --username << parameters.user >> \
                     --repository << parameters.repository >> \
                     --commitish << parameters.target >> \
@@ -92,15 +90,15 @@ commands:
                     --body "<< parameters.description >>" \
                     <<# parameters.draft >> --draft <</ parameters.draft >> \
                     <<# parameters.pre-release >> --prerelease <</ parameters.pre-release >> \
-                      << parameters.tag >> << parameters.path >>
+                      << parameters.tag >> << parameters.file-path >>
       - unless:
-          condition: << parameters.path >>
+          condition: << parameters.file-path >>
           steps:
             - run:
                 name: "[github-release/create] Publish a new release without artifacts"
                 command: |
                   github-release release \
-                    --security-token << parameters.token >> \
+                    --security-token << parameters.github-token-variable >> \
                     --user << parameters.user >> \
                     --repo << parameters.repository >> \
                     --tag << parameters.tag >> \
@@ -117,3 +115,41 @@ commands:
       - run:
           name: "[github-release] Get tools to manage releases"
           command: go get github.com/aktau/github-release github.com/tcnksm/ghr
+
+
+examples:
+
+  delete:
+    description: Delete an existing release
+    usage:
+      version: 2.1
+      orbs:
+        github-release: h-matsuo/github-release@0.1.1
+      jobs:
+        build:
+          description: Delete the release tagged `vX.Y.Z`
+          executor: github-release/default
+          steps:
+            - github-release/delete:
+                tag: vX.Y.Z
+
+  create:
+    description: Publish a new release with artifacts
+    usage:
+      version: 2.1
+      orbs:
+        github-release: h-matsuo/github-release@0.1.1
+      jobs:
+        build:
+          description: Create dummy file and publish a new release tagged `vX.Y.Z`
+          executor: github-release/default
+          steps:
+            - run:
+                command: |
+                  mkdir artifacts
+                  echo dummy > ./artifacts/file
+            - github-release/create:
+                tag: vX.Y.Z
+                title: Version vX.Y.Z
+                description: This release is version vX.Y.Z .
+                file-path: ./artifacts/file

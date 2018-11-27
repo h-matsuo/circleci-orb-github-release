@@ -3,6 +3,39 @@ version: 2.1
 orbs:
   orb-tools: circleci/orb-tools@2.0.2
 
+jobs:
+  add-git-tag-for-latest-revision-and-push:
+    docker:
+      - image: circleci/buildpack-deps:latest
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "19:53:57:28:e2:b4:be:fd:15:6c:92:02:3f:14:bd:f8"
+      - run:
+          name: Install circleci-cli
+          command: |
+            curl -fLSs https://circle.ci/cli | sudo bash
+            circleci update check
+            circleci update install
+      - run:
+          name: Set up git
+          command: |
+            git config push.default current
+            git config user.email "ci@circleci.com"
+            git config user.name "CircleCI"
+      - run:
+          name: Get latest revision number
+          command: |
+            export LATEST_ORB_REVISION=$(
+              circleci orb info h-matsuo/github-release | grep Latest | awk -F '@' '{print $2}')
+            echo "export LATEST_ORB_REVISION=$LATEST_ORB_REVISION" >> $BASH_ENV
+      - run:
+          name: Add git tag and push it
+          command: |
+            git tag $LATEST_ORB_REVISION $CIRCLE_SHA1
+            git push origin $LATEST_ORB_REVISION
+
 workflows:
 
   # Publish this orb as dev version
@@ -35,3 +68,6 @@ workflows:
           validate: true
           requires:
             - wait-for-approval
+      - add-git-tag-for-latest-revision-and-push:
+          requires:
+            - orb-tools/increment
