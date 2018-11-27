@@ -1,7 +1,8 @@
 version: 2.1
 
 description: |
-  Create / delete GitHub's Releases. https://github.com/h-matsuo/circleci-orb-github-release
+  Create / delete GitHub's Releases.
+  Issues & PRs: https://github.com/h-matsuo/circleci-orb-github-release
 
 executors:
   default:
@@ -123,6 +124,7 @@ examples:
   delete:
     description: Delete an existing release
     usage:
+      # Make sure you set $GITHUB_TOKEN to your GitHub's personal access token in advance
       version: 2.1
       orbs:
         github-release: h-matsuo/github-release@0.1.1
@@ -137,6 +139,7 @@ examples:
   create:
     description: Publish a new release with artifacts
     usage:
+      # Make sure you set $GITHUB_TOKEN to your GitHub's personal access token in advance
       version: 2.1
       orbs:
         github-release: h-matsuo/github-release@0.1.1

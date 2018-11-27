@@ -39,7 +39,7 @@ jobs:
 workflows:
 
   # Publish this orb as dev version
-  # when pushed to the branches except for `master`
+  #   when pushed to the branches except for `master`
   publish-as-dev-version:
     jobs:
       - orb-tools/publish:
@@ -52,7 +52,7 @@ workflows:
               ignore: master
 
   # Publish this orb as prod version
-  # when pushed to `master` branch
+  #   when pushed to `master` branch
   publish-as-prod-version:
     jobs:
       - wait-for-approval:
