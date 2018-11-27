@@ -8,7 +8,7 @@ executors:
   default:
     parameters:
       tag:
-        description: Pick a specific circleci/golang image variant
+        description: Pick a specific circleci/golang image variant.
         type: string
         default: "latest"
     docker:
@@ -16,27 +16,27 @@ executors:
 
 common-parameters: &common-parameters
   github-token-variable:
-    description: Environment variable containing your GitHub personal access token
+    description: Environment variable containing your GitHub personal access token.
     type: string
     default: $GITHUB_TOKEN
   user:
-    description: GitHub repository user or organization
+    description: GitHub repository user or organization.
     type: string
     default: $CIRCLE_PROJECT_USERNAME
   repository:
-    description: GitHub repository
+    description: GitHub repository.
     type: string
     default: $CIRCLE_PROJECT_REPONAME
-  tag:
-    description: Git tag to create the release from
-    type: string
 
 commands:
 
   delete:
-    description: Delete an existing release
+    description: Delete an existing release.
     parameters:
       <<: *common-parameters
+      tag:
+        description: Git tag for the release.
+        type: string
     steps:
       - internal__install-deps
       - run:
@@ -49,29 +49,35 @@ commands:
               --tag << parameters.tag >>
 
   create:
-    description: Create a new release
+    description: Create a new release.
     parameters:
       <<: *common-parameters
+      tag:
+        description: Git tag using as the version number of the release.
+        type: string
       target:
-        description: Git commitish (commit SHA or branch name) to create the release of
+        description: Git commitish (commit SHA or branch name) containing the project you want to release.
         type: string
         default: $CIRCLE_SHA1
       title:
-        description: Name of the release
+        description: Name of the release.
         type: string
       description:
-        description: Description of the release
+        description: Description of the release.
         type: string
       file-path:
-        description: File path to be uploaded (if directory, all files in the directory will be uploaded)
+        description: |
+          File path to be uploaded.
+          If directory, all files in the directory will be uploaded.
+          If empty, just create a new release without uploading any files.
         type: string
         default: ""
       draft:
-        description: Set true if the release is a draft
+        description: Set true if the release is a draft.
         type: boolean
         default: false
       pre-release:
-        description: Set true if the release is a pre-release
+        description: Set true if the release is a pre-release.
         type: boolean
         default: false
     steps:
@@ -122,30 +128,32 @@ commands:
 examples:
 
   delete:
-    description: Delete an existing release
+    description: |
+      Delete an existing release.
+      Make sure you set $GITHUB_TOKEN to your GitHub personal access token in advance.
     usage:
-      # Make sure you set $GITHUB_TOKEN to your GitHub's personal access token in advance
       version: 2.1
       orbs:
         github-release: h-matsuo/github-release@0.1.1
       jobs:
         build:
-          description: Delete the release tagged `vX.Y.Z`
+          description: Delete the release tagged `vX.Y.Z`.
           executor: github-release/default
           steps:
             - github-release/delete:
                 tag: vX.Y.Z
 
   create:
-    description: Publish a new release with artifacts
+    description: |
+      Publish a new release with artifacts.
+      Make sure you set $GITHUB_TOKEN to your GitHub personal access token in advance.
     usage:
-      # Make sure you set $GITHUB_TOKEN to your GitHub's personal access token in advance
       version: 2.1
       orbs:
         github-release: h-matsuo/github-release@0.1.1
       jobs:
         build:
-          description: Create dummy file and publish a new release tagged `vX.Y.Z`
+          description: Create dummy file and publish a new release tagged `vX.Y.Z`.
           executor: github-release/default
           steps:
             - run:
